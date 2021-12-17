@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -9,8 +9,8 @@
 
 *' @code Some of the land use transitions are restricted:
 
-*' No afforestation on natveg areas
-*v10_lu_transitions.fx(j,"primforest","forestry") = 0;
+*' No planted forest on natveg areas
+v10_lu_transitions.fx(j,"primforest","forestry") = 0;
 *v10_lu_transitions.fx(j,"secdforest","forestry") = 0;
 *v10_lu_transitions.fx(j,"other","forestry") = 0;
 
@@ -29,11 +29,6 @@ v10_lu_transitions.up(j,"primforest","primforest") = Inf;
 *' Secdforest can only decrease (during optimization)
 *v10_lu_transitions.fx(j,land_from10,"secdforest") = 0;
 *v10_lu_transitions.up(j,"secdforest","secdforest") = Inf;
-
-*' Urban land is fixed
-v10_lu_transitions.fx(j,land_from10,"urban") = 0;
-v10_lu_transitions.fx(j,"urban",land_to10) = 0;
-v10_lu_transitions.fx(j,"urban","urban") = pcm_land(j,"urban");
 
 *' @stop
 

@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -78,7 +78,7 @@ $title magpie
 *' of fertilizer spreaders) (@popp_land-use_2014, @stevanovic_mitigation_2017). In addition,
 *' the model covers land-based carbon removal technologies such as bioenergy with carbon capture
 *' and sequestration (CCS) and afforestation (@humpenoder_investigating_2014,
-*' @humpenoder_large-scale_2017, @kreidenweis_afforestation_2016).
+*' @humpenoeder_bioenergy_2018, @kreidenweis_afforestation_2016).
 *'
 *' In response to all involved demand for agricultural commodities, costs of production,
 *' biophysical constraints and land-related policies, MAgPIE simulates major dynamics of
@@ -107,7 +107,7 @@ $title magpie
 *'  * ?m_ module-relevant object - This object is used by at least one module and the core code. Changes related to this object have to be performed carefully.
 *'  * ?00_ (a 2-digit number) module-only object This 2-digit number defines the module the object belongs to. The number is used here to make sure that different modules cannot have the same object
 *'
-*' Sets 
+*' Sets
 *'
 *' Sets are treated slightly different: Instead of adding a prefix sets should get a 2-digit number suffix giving the number
 *' of the module in which the set is exclusively used. If the set is used in more than one module no suffix should be given.
@@ -131,14 +131,14 @@ $title magpie
 *'  * Use units that lead to variable values in the range of 0.01 to 100. Keep the option of scaling in mind.
 *'  * Use only MAgPIE standard units in GAMS code 10^6, 10^6 ha, 10^6 tDM, 10^6 PJ, 10^6 USD, 10^6 m3
 *'  * Make sure that your inputs already have the right unit
-*' 
+*'
 *' Input files
-*' 
+*'
 *'  * Input file names must be unique, because input files will be downloaded from a data repository and extracted to the same folder so that different files with the same file name would overwrite each other.
 *'  * Do not add input files to the git repository. Input files should be copied instead to one of the existing data repositories from which the data is downloaded by the model.
-*' 
+*'
 *' Postprocessing
-*' 
+*'
 *'  * Processing of model outputs is managed in the corresponding magpie R package (e.g. package "magpie4" for MAgPIE version 4.x).
 *'  * If you change something in the GAMS code make sure that all function in the corresponding magpie R package still work and adapt them if necessary to the new model structure.
 *'  * When performing modifications in a magpie R package make sure that these changes are downwards compatible.
@@ -146,25 +146,25 @@ $title magpie
 
 *##################### R SECTION START (VERSION INFO) ##########################
 * 
-* Used data set: isimip_rcp-IPSL_CM5A_LR-rcp2p6-co2_rev42_c200_690d3718e151be1b450b394c1064b1c5.tgz
-* md5sum: 94c214b0a7b46f403dd0aab57b7e476c
-* Repository: /p/projects/landuse/data/input/archive
+* Used data set: rev4.65_h12_magpie.tgz
+* md5sum: NA
+* Repository: https://rse.pik-potsdam.de/data/magpie/public
 * 
-* Used data set: rev4.37_690d3718e151be1b450b394c1064b1c5_magpie.tgz
-* md5sum: 3e22e59029e3cd043e247b435cc773ce
-* Repository: /p/projects/rd3mod/inputdata/output
+* Used data set: rev4.65_h12_1998ea10_cellularmagpie_c200_MRI-ESM2-0-ssp370_lpjml-8e6c5eb1.tgz
+* md5sum: NA
+* Repository: scp://cluster.pik-potsdam.de/p/projects/rd3mod/inputdata/output
 * 
-* Used data set: rev4.37_690d3718e151be1b450b394c1064b1c5_validation.tgz
-* md5sum: 7573940b148f440a5f2d2ceedf400afc
-* Repository: /p/projects/rd3mod/inputdata/output
+* Used data set: rev4.65_h12_validation.tgz
+* md5sum: NA
+* Repository: https://rse.pik-potsdam.de/data/magpie/public
 * 
-* Used data set: calibration_H12_c200_12Sep18.tgz
-* md5sum: 0a7d88e902918eb6a5263faaf066cc5d
-* Repository: /p/projects/landuse/data/input/calibration
+* Used data set: additional_data_rev4.07.tgz
+* md5sum: NA
+* Repository: https://rse.pik-potsdam.de/data/magpie/public
 * 
-* Used data set: additional_data_rev3.77.tgz
-* md5sum: 28184d92028972c171145399ab21fdca
-* Repository: /p/projects/landuse/data/input/archive
+* Used data set: calibration_H12_sticky_feb18_free_12Nov21.tgz
+* md5sum: NA
+* Repository: https://rse.pik-potsdam.de/data/magpie/public
 * 
 * Low resolution: c200
 * High resolution: 0.5
@@ -173,31 +173,24 @@ $title magpie
 * 
 * Number of cells per region:
 *   CAZ  CHA  EUR  IND  JPN  LAM  MEA  NEU  OAS  REF  SSA  USA
-*    28   24   10    7    3   53   17    8   22    7   11   10
+*     6   23    7    6    1   43   27    7   11   12   37   20
 * 
-* Regionscode: 690d3718e151be1b450b394c1064b1c5
+* Regionscode: 62eff8f7
 * 
-* Regions data revision: 4.37
+* Regions data revision: 4.65
 * 
 * lpj2magpie settings:
-* * LPJmL data folder: /p/projects/landuse/data/input/lpj_input/isimip_rcp/IPSL_CM5A_LR/rcp2p6/co2
-* * Additional input folder: /p/projects/landuse/data/input/other/rev42
-* * Revision: 42
-* * Call: lpj2magpie(input_folder = path(cfg$lpj_input_folder, gsub("-",     "/", cfg$input)), input2_folder = path(cfg$additional_input_folder,     paste("rev", floor(cfg$revision), sep = "")), output_file = lpj2magpie_file,     rev = cfg$revision)
+* * LPJmL data: MRI-ESM2-0:ssp370
+* * Revision: 4.65
 * 
 * aggregation settings:
 * * Input resolution: 0.5
 * * Output resolution: c200
-* * Input file: /p/projects/landuse/data/input/archive/isimip_rcp-IPSL_CM5A_LR-rcp2p6-co2_rev42_0.5.tgz
-* * Output file: /p/projects/landuse/data/input/archive/isimip_rcp-IPSL_CM5A_LR-rcp2p6-co2_rev42_c200_690d3718e151be1b450b394c1064b1c5.tgz
-* * Regionscode: 690d3718e151be1b450b394c1064b1c5
-* * (clustering) n-repeat: 5
-* * (clustering) n-redistribute: 0
-* * Call: aggregation(input_file = lpj2magpie_file, regionmapping = paste0("../",     cfg$regionmapping), output_file = aggregation_file, rev = cfg$revision,     res_high = cfg$high_res, res_low = cfg$low_res, hcells = cfg$highres_cells,     weight = cfg$cluster_weight, nrepeat = cfg$nrepeat, nredistribute = cfg$nredistribute,     sum_spam_file = cfg$spamfile, debug = FALSE, seed = cfg$seed)
+* * Regionscode: 62eff8f7
+* * Call: do.call(functiononly, args)
 * 
 * 
-* 
-* Last modification (input data): Mon Feb 17 14:01:16 2020
+* Last modification (input data): Mon Nov 29 20:49:27 2021
 * 
 *###################### R SECTION END (VERSION INFO) ###########################
 
@@ -222,10 +215,11 @@ $offlisting
 *                    Key parameters during model runs
 
 $setglobal c_timesteps  coup2100
-$setglobal c_title  SSP2_rev42_rev4p37
+$setglobal c_past  till_2010
+$setglobal c_title  default
 
 scalars
-  s_use_gdx   use of gdx files                                       / 2 /
+s_use_gdx   use of gdx files                                       / 2 /
 ;
 ********************************************************************************
 
@@ -234,32 +228,38 @@ scalars
 $setglobal drivers  aug17
 $setglobal land  landmatrix_dec18
 $setglobal costs  default
-$setglobal interest_rate  reg_feb18
+$setglobal interest_rate  select_apr20
 $setglobal tc  endo_jun18
-$setglobal yields  dynamic_aug18
+$setglobal yields  managementcalib_aug19
 
 $setglobal food  anthropometrics_jan18
 $setglobal demand  sector_may15
 $setglobal production  flexreg_apr16
 
 $setglobal residues  flexreg_apr16
-$setglobal processing  substitution_dec18
+$setglobal processing  substitution_may21
 
 $setglobal trade  selfsuff_reduced
 
-$setglobal crop  endo_jun13
-$setglobal past  endo_jun13
-$setglobal forestry  dynamic_oct19
-$setglobal urban  static
-$setglobal natveg  dynamic_oct19
+$setglobal ageclass  feb21
 
-$setglobal factor_costs  mixed_feb17
-$setglobal landconversion  global_static_aug18
+$setglobal crop  endo_apr21
+$setglobal past  endo_jun13
+
+$setglobal forestry  dynamic_feb21
+
+$setglobal urban  exo_nov21
+$setglobal natveg  dynamic_feb21
+
+$setglobal labor_prod  off
+$setglobal factor_costs  sticky_feb18
+$setglobal landconversion  calib
 
 $setglobal transport  gtap_nov12
 $setglobal area_equipped_for_irrigation  endo_apr13
-$setglobal water_demand  agr_sector_aug13
+$setglobal water_demand  all_sectors_aug13
 $setglobal water_availability  total_water_aug13
+$setglobal biodiversity  bv_btc_mar21
 $setglobal climate  static
 
 $setglobal nr_soil_budget  exoeff_aug16
@@ -270,12 +270,16 @@ $setglobal phosphorus  off
 $setglobal awms  ipcc2006_aug16
 $setglobal ghg_policy  price_jan20
 $setglobal maccs  on_sep16
+$setglobal peatland  on
 $setglobal som  static_jan19
 
 $setglobal bioenergy  1stgen_priced_dec18
 $setglobal material  exo_flexreg_apr16
 $setglobal livestock  fbask_jan16
+
 $setglobal disagg_lvst  foragebased_aug18
+
+$setglobal timber  default
 
 $setglobal optimization  nlp_apr17
 

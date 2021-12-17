@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -16,7 +16,7 @@
  q10_landexpansion(j2,land) ..
         vm_landexpansion(j2,land) =g= vm_land(j2,land)-pcm_land(j2,land);
  q10_landreduction(j2,land) ..
-        v10_landreduction(j2,land) =g= pcm_land(j2,land)-vm_land(j2,land);
+        vm_landreduction(j2,land) =g= pcm_land(j2,land)-vm_land(j2,land);
 
 *' The gross changes in land are calculated based on land expansion, land
 *' contraction and land changes from within the modules [35_natveg]
@@ -24,6 +24,6 @@
 
  q10_landdiff ..
 		vm_landdiff =e= sum((j2,land), vm_landexpansion(j2,land)
-                                 + v10_landreduction(j2,land))
+                                 + vm_landreduction(j2,land))
                                  + vm_landdiff_natveg
                                  + vm_landdiff_forestry;

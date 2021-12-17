@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -13,9 +13,9 @@ $include "./modules/51_nitrogen/input/f51_ipcc_ef.csv"
 $offdelim
 ;
 
-table f51_ef_n_soil(n_pollutants_direct,emis_source_n_cropsoils51) ipcc emission factors for various emission types X (tX-N per tN)
+table f51_ef_n_soil(t_all,i,n_pollutants_direct,emis_source_n_cropsoils51) ipcc emission factors for various emission types X (tX-N per tN)
 $ondelim
-$include "./modules/51_nitrogen/ipcc2006_sep16/input/f51_ef_n_soil.cs3"
+$include "./modules/51_nitrogen/input/f51_ef_n_soil_reg.cs3"
 $offdelim
 ;
 
@@ -31,5 +31,12 @@ parameter f51_ef3_prp(i,n_pollutants_direct,kli) emissions from manure on pastur
 /
 $ondelim
 $include "./modules/51_nitrogen/ipcc2006_sep16/input/f51_ef3_prp.cs4"
+$offdelim
+/;
+
+parameter f51_ef_resid_burn(n_pollutants_direct) emission factor for residual burning (tX-N per t DM)
+/
+$ondelim
+$include "./modules/51_nitrogen/ipcc2006_sep16/input/f51_ef_resid_burn.cs4"
 $offdelim
 /;

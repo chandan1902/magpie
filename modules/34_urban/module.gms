@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -11,8 +11,9 @@
 *' (see also the other land modules: [30_crop], [31_past], [32_forestry], [35_natveg]). 
 *' It describes urban settlement areas and estimates their corresponding carbon content.
 *'
-*' @authors Jan Philipp Dietrich, Florian Humpenöder
+*' @authors Jan Philipp Dietrich, Florian Humpenöder, David Meng-Chuen Chen, Benjamin Leon Bodirsky
 
 *###################### R SECTION START (MODULETYPES) ##########################
+$Ifi "%urban%" == "exo_nov21" $include "./modules/34_urban/exo_nov21/realization.gms"
 $Ifi "%urban%" == "static" $include "./modules/34_urban/static/realization.gms"
 *###################### R SECTION END (MODULETYPES) ############################

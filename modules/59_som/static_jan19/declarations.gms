@@ -1,4 +1,4 @@
-*** |  (C) 2008-2019 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2021 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -8,6 +8,7 @@
 parameters
         i59_topsoilc_density(t_all,j)      Topsoil carbon density of a hectare of cropland (tC per ha)
         i59_subsoilc_density(t_all,j)      Subsoil carbon density of a hectare of land (tC per ha)
+        i59_nr_som_exogenous_per_ha(t_all,i)      Exogenous nr release due to som release per ha (tN per ha)
 ;
 
 variables
