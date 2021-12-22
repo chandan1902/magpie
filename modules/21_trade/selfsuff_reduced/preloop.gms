@@ -17,6 +17,10 @@ i21_trade_margin(h,k_trade) = f21_trade_margin(h,k_trade);
 
 if ((s21_trade_tariff=1),
     i21_trade_tariff(h,k_trade) = f21_trade_tariff(h,k_trade);
+
+   f21_self_suff("y2005","IND","molasses")=1;
+   f21_self_suff("y2005","IND","ethanol")=1;
+
 elseif (s21_trade_tariff=0),
     i21_trade_tariff(h,k_trade) = 0;
 );

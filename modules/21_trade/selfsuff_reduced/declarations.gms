@@ -22,6 +22,8 @@ positive variables
 equations
  q21_trade_glo(k_trade)                  Global production constraint (mio. tDM per yr)
  q21_notrade(h,k_notrade)                Superregional production constraint of non-tradable commodities (mio. tDM per yr)
+ q21_notradeIndEth(i,k_trade)         Reg trade for India ethanol
+ q21_notradeIndMol(i,k_trade)        Reg trade for India molasses
  q21_trade_reg(h,k_trade)                Superregional trade balances i.e. minimum self-sufficiency ratio (1)
  q21_trade_reg_up(h,k_trade)             Superregional trade balances i.e. maximum self-sufficiency ratio (1)
  q21_excess_dem(k_trade)                 Global excess demand (mio. tDM per yr)
@@ -38,6 +40,8 @@ parameters
  ov21_cost_trade_reg(t,h,k_trade,type) Superregional trade costs for each tradable commodity (mio. USD05MER per yr)
  oq21_trade_glo(t,k_trade,type)        Global production constraint (mio. tDM per yr)
  oq21_notrade(t,h,k_notrade,type)      Superregional production constraint of non-tradable commodities (mio. tDM per yr)
+ oq21_notradeIndEth(t,i,k_trade,type)  Reg trade for India ethanol
+ oq21_notradeIndMol(t,i,k_trade,type)  Reg trade for India molasses
  oq21_trade_reg(t,h,k_trade,type)      Superregional trade balances i.e. minimum self-sufficiency ratio (1)
  oq21_trade_reg_up(t,h,k_trade,type)   Superregional trade balances i.e. maximum self-sufficiency ratio (1)
  oq21_excess_dem(t,k_trade,type)       Global excess demand (mio. tDM per yr)
