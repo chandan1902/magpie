@@ -242,7 +242,7 @@ start_run <- function(cfg, scenario = NULL, codeCheck = TRUE, lock_model = TRUE)
   cfg$info$version <- citation::read_cff("CITATION.cff")$version
 
   # Make 'title' a setglobal in gams to include it in the gdx
-  cfg$gms$c_title <- cfg$title
+  cfg$gms$c_title <- sub(".", "p", cfg$title, fixed = TRUE)
 
   rundate <- Sys.time()
   date <- format(rundate, "_%Y-%m-%d_%H.%M.%S")
@@ -264,26 +264,37 @@ start_run <- function(cfg, scenario = NULL, codeCheck = TRUE, lock_model = TRUE)
   if (is.null(renv::project())) {
     message("No active renv project found, not using renv.")
   } else {
-    message("Generating lockfile '", file.path(cfg$results_folder, "renv.lock"), "'... ", appendLF = FALSE)
-    # suppress output of renv::snapshot
-    utils::capture.output({
+    # this script always runs in repo root, so we can check whether the main renv is loaded with:
+    if (normalizePath(renv::project()) == normalizePath(".")) {
+      message("Generating lockfile in '", cfg$results_folder, "'... ", appendLF = FALSE)
+      # suppress output of renv::snapshot
       utils::capture.output({
-        # snapshot current main renv into run folder
-        renv::snapshot(lockfile = file.path(cfg$results_folder, "main_renv.lock"), prompt = FALSE)
-      }, type = "message")
-    })
-    message("done.")
+        utils::capture.output({
+          # snapshot current main renv into run folder
+          renv::snapshot(lockfile = file.path(cfg$results_folder, "_renv.lock"), prompt = FALSE)
+        }, type = "message")
+      })
+      message("done.")
+    } else {
+      # a run renv is loaded, we are presumably starting a HR follow up run
+      message("Copying lockfile into '", cfg$results_folder, "'")
+      file.copy(renv::paths$lockfile(), file.path(cfg$results_folder, "_renv.lock"))
+    }
 
-    message("Creating renv in '", cfg$results_folder, "'... ", appendLF = FALSE)
     createResultsfolderRenv <- function() {
       renv::init() # will overwrite renv.lock if existing...
-      file.rename("main_renv.lock", "renv.lock") # so we need this rename
+      file.rename("_renv.lock", "renv.lock") # so we need this rename
       renv::restore(prompt = FALSE)
+      message("renv creation done.")
     }
+
+    renvLogPath <- file.path(cfg$results_folder, "log_renv.txt")
+    message("Initializing run renv, see '", renvLogPath, "'...", appendLF = FALSE)
     # init renv in a separate session so the libPaths of the current session remain unchanged
     callr::r(createResultsfolderRenv,
              wd = cfg$results_folder,
-             env = c(RENV_PATHS_LIBRARY = "renv/library"))
+             env = c(RENV_PATHS_LIBRARY = "renv/library"),
+             stdout = renvLogPath, stderr = "2>&1")
     message("done.")
   }
 
@@ -588,4 +599,36 @@ getReportData <- function(path_to_report_bioenergy, mute_ghgprices_until = "y201
     ghgmag <- .readAndPrepare(path_to_report_ghgprices)
     .emissionPrices(ghgmag, mute_ghgprices_until)
   }
+}
+
+# Will not actually solve the model: after compilation, this just copies the results
+# of a previous run, useful for testing compilation and input/output handling.
+# Used in scripts/start/extra/empty_model.R and tests for REMIND-MAgPIE coupling.
+configureEmptyModel <- function(cfg, inputGdxPath) {
+    message("Configuring to use empty MAgPIE model, reproduces prior run ", inputGdxPath)
+    originalModel <- withr::local_connection(file(cfg$model, "r"))
+    emptyModelFile <- "standalone/empty_test_model.gms"
+    emptyModel <- withr::local_connection(file(emptyModelFile, "w"))
+    while (TRUE) {
+      originalLine <- readLines(originalModel, n = 1)
+      if (length(originalLine) == 0) {
+        break
+      }
+      writeLines(originalLine, emptyModel)
+      if (grepl("*END MODULE SETUP*", originalLine)) {
+        # add code for short-circuiting the model
+        writeLines(c(
+          "***********************TEST USING EMPTY MODEL***********************************",
+          "*** empty model just uses input gdx as the result",
+          "*** rest of the model is compiled, but not executed",
+          "$setglobal c_input_gdx_path  path",
+          "execute \"cp %c_input_gdx_path% fulldata.gdx\";",
+          "abort.noerror \"cp %c_input_gdx_path% fulldata.gdx\";",
+          "********************************************************************************"),
+          emptyModel)
+      }
+    }
+    cfg$model <- emptyModelFile
+    cfg$gms$c_input_gdx_path <- inputGdxPath
+    return(cfg)
 }
