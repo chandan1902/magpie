@@ -1,4 +1,4 @@
-*** |  (C) 2008-2023 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -66,13 +66,21 @@ scalars
 
 parameters
 * technical
- p15_modelstat(t)                       Model solver status (1)
- p15_iteration_counter(t)               Number of iterations required for reaching an equilibrium between food demand model and magpie (1)
- p15_convergence_measure(t,iter15)      Convergence measure to decide for continuation or stop of food_demand - magpie iteration (1)
- i15_dem_intercept(iso,regr15)          Food regression parameters intercept in kcal or as share (X)
- i15_dem_saturation(iso,regr15)             Food regression parameters saturation in kcal or as share (X)
- i15_dem_halfsat(iso,regr15)                Food regression parameters halfsaturation (USD05PPP per cap)
- i15_dem_nonsat(iso,regr15)                 Food regression parameters nonsaturation (1)
+ p15_modelstat(t)                                  Model solver status (1)
+ p15_iteration_counter(t)                          Number of iterations required for reaching an equilibrium between food demand model and magpie (1)
+ p15_convergence_measure(t,iter15)                 Convergence measure to decide for continuation or stop of food_demand - magpie iteration (1)
+ i15_dem_intercept(iso,regr15)                     Food regression parameters intercept in kcal or as share (X)
+ i15_dem_saturation(iso,regr15)                    Food regression parameters saturation in kcal or as share (X)
+ i15_dem_halfsat(iso,regr15)                       Food regression parameters halfsaturation (USD05PPP per cap)
+ i15_dem_nonsat(iso,regr15)                        Food regression parameters nonsaturation (1)
+ p15_ruminant_subst_fader(t_all)                   Ruminant meat substitution fader (1)
+ p15_fish_subst_fader(t_all)                       Fish substitution fader (1)
+ p15_alcohol_subst_fader(t_all)                    Alcohol substitution fader (1)
+ p15_livestock_subst_fader(t_all)                  Livestock substitution fader (1)
+ p15_rumdairy_subst_fader(t_all)                   Ruminant and dairy substitution fader (1)
+ p15_rumdairy_scp_subst_fader(t_all)               Ruminant and dairy substitution with SCP fader (1)
+ p15_livestock_threshold_subst_fader(t_all)        Fader for livestock threshold target (1)
+ p15_exo_food_scenario_fader(t_all)                Exogenous diet scenario fader (1)
 
 *prices
  p15_prices_kcal(t,iso,kfo,iter15)                 Prices from MAgPIE after optimization (USD05PPP per kcal)
@@ -126,8 +134,7 @@ parameters
 
 * before shock
  o15_kcal_regr_initial(t,iso,kfo)             Uncalibrated per capita demand before price shock (kcal per capita per day)
- p15_kcal_pc_initial(t,i,kfo)                 Per capita consumption in food demand model before price shock on regional level (kcal per capita per day)
- pm_kcal_pc_initial(t,i,kfo)                  Per capita consumption in food demand model before price shock (kcal per capita per day)
+ pm_kcal_pc_initial(t,i,kall)                  Per capita consumption in food demand model before price shock (kcal per capita per day)
  p15_kcal_pc_initial_iso(t,iso,kfo)           Per capita consumption in food demand model before price shock on country level (kcal per capita per day)
 
 * after price shock
@@ -155,7 +162,7 @@ parameters
  i15_intake_scen_target(t,i)                  Target for total per capita calorie intake according to an exogenous diet scenario (kcal per capita per day)
  i15_intake_EATLancet_all(i,kcal_scen15,EAT_scen15,kfo)       Food-specific per capita calorie intake according to various EAT Lancet diet scenarios (kcal per capita per day)
  i15_intake_EATLancet(i,kfo)                  Food-specific per capita calorie intake according to EAT Lancet diet scenario (kcal per capita per day)
- i15_intake_detailed_scen_target(t,i,kfo)     Target for food-specific per capita calorie intake according to an exogenous diet scenario (kcal per capita per day)
+ p15_intake_detailed_scen_target(t,i,kfo)     Target for food-specific per capita calorie intake according to an exogenous diet scenario (kcal per capita per day)
  p15_intake_detailed_regr(t,i,kfo)            Food-specific per capita calorie intake according to regression-based projections (kcal per capita per day)
 
  p15_demand2intake_ratio_ref(i)               Ratio between food calorie demand and intake for the historical time step of EAT Lancet diets (1)

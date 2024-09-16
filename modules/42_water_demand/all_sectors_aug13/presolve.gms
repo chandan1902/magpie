@@ -1,4 +1,4 @@
-*** |  (C) 2008-2023 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -37,12 +37,20 @@ if ((s42_pumping = 1),
 
 * Water withdrawals in manufacturing, electricity, domestic, ecosystem
 * depends on the socioeconomic scenario
-if ((s42_watdem_nonagr_scenario = 1),
- vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp1",watdem_ineldo);
-Elseif(s42_watdem_nonagr_scenario = 2),
- vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp2",watdem_ineldo);
-Elseif(s42_watdem_nonagr_scenario = 3),
- vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp3",watdem_ineldo);
+if (m_year(t) <= sm_fix_SSP2,
+  vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp2",watdem_ineldo);
+  i42_watdem_total(t,j,watdem_ineldo) = f42_watdem_ineldo_total(t,j,"ssp2",watdem_ineldo);
+else
+  if ((s42_watdem_nonagr_scenario = 1),
+    vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp1",watdem_ineldo);
+    i42_watdem_total(t,j,watdem_ineldo) = f42_watdem_ineldo_total(t,j,"ssp1",watdem_ineldo);
+  Elseif (s42_watdem_nonagr_scenario = 2),
+    vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp2",watdem_ineldo);
+    i42_watdem_total(t,j,watdem_ineldo) = f42_watdem_ineldo_total(t,j,"ssp2",watdem_ineldo);
+  Elseif (s42_watdem_nonagr_scenario = 3),
+    vm_watdem.fx(watdem_ineldo,j) = f42_watdem_ineldo(t,j,"ssp3",watdem_ineldo);
+    i42_watdem_total(t,j,watdem_ineldo) = f42_watdem_ineldo_total(t,j,"ssp3",watdem_ineldo);
+  );
 );
 
 

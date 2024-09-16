@@ -1,4 +1,4 @@
-# |  (C) 2008-2023 Potsdam Institute for Climate Impact Research (PIK)
+# |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
 # |  authors, and contributors see CITATION.cff file. This file is part
 # |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 # |  AGPL-3.0, you are granted additional permissions described in the
@@ -39,7 +39,7 @@ source("scripts/start_functions.R")
 
 highres <- function(cfg) {
   #lock the model folder
-  lockId <- gms::model_lock(timeout1 = 1)
+  lockId <- gms::model_lock(timeout1 = 24)
   withr::defer(gms::model_unlock(lockId))
 
   if(any(!(modelstat(gdx) %in% c(2,7)))) stop("Modelstat different from 2 or 7 detected")
@@ -74,9 +74,9 @@ highres <- function(cfg) {
       #list files with sftp command
       path <- paste0(sub("scp://","sftp://",repo),"/")
       h <- try(curl::new_handle(verbose = debug, .list = repositories[[repo]], ftp_use_epsv = TRUE, dirlistonly = TRUE), silent = TRUE)
-      con <- curl::curl(url = path, "r", handle = h)
+      con <- try(curl::curl(url = path, "r", handle = h), silent = TRUE)
       dat <- try(readLines(con), silent = TRUE)
-      close(con)
+      try(close(con), silent = TRUE)
       found <- c(found,grep(glob2rx(file),dat,value = T))
     } else if (dir.exists(repo)) {
       dat <- list.files(repo)
@@ -100,9 +100,8 @@ highres <- function(cfg) {
   #copy gdx file for 1st time step from low resolution run for better starting point
   #note: using gdx files for more than the 1st time step sometimes pushes the model into corner solutions, which might result in infeasibilites.
   cfg$files2export$start <- c(cfg$files2export$start,
-                              paste0(cfg$results_folder, "/", "magpie_y1995.gdx"))
-  cfg$gms$s_use_gdx   <- 1
-  cfg$gms$s80_optfile <- 1
+                              paste0(cfg$results_folder, "/", "magpie_y*.gdx"))
+  cfg$gms$s_use_gdx   <- 2
 
   #max resources for parallel runs
   cfg$qos <- "standby_maxMem_dayMax"
@@ -120,15 +119,24 @@ highres <- function(cfg) {
   tmp[1]    <- paste0(tmp[1], paste0("HR", res))
   cfg$title <- paste(tmp, collapse = "_")
 
-  cfg$results_folder <- paste0("output/HR", res, "/:title:")
+  if(!is.null(cfg$results_folder_highres)) {
+    cfg$results_folder <- file.path(cfg$results_folder_highres,":title:")
+  } else {
+    cfg$results_folder <- paste0("output/HR", res, "/:title:")
+  }
   cfg$force_replace  <- TRUE
   cfg$recalc_npi_ndc <- TRUE
 
   #get trade pattern from low resolution run with c200
-  ov_prod_reg <- readGDX(gdx, "ov_prod_reg", select = list(type = "level"))
-  ov_supply   <- readGDX(gdx, "ov_supply", select = list(type = "level"))
+  k_trade      <- readGDX(gdx, "k_trade")
+  ov_prod_reg <- readGDX(gdx, "ov_prod_reg", select = list(type = "level"))[,,k_trade]
+  ov_supply   <- readGDX(gdx, "ov_supply", select = list(type = "level"))[,,k_trade]
+  import_for_feasibility   <- readGDX(gdx, "ov21_import_for_feasibility", select = list(type = "level"), react = "silent")
+  if(is.null(import_for_feasibility)) {
+    import_for_feasibility <- new.magpie(getCells(ov_supply),getYears(ov_supply),getNames(ov_supply),fill = 0)
+  }
   supreg      <- readGDX(gdx, "supreg")
-  f21_trade_balance <- toolAggregate(ov_prod_reg - ov_supply, supreg)
+  f21_trade_balance <- toolAggregate(ov_prod_reg - (ov_supply + import_for_feasibility), supreg)
   write.magpie(f21_trade_balance, paste0("modules/21_trade/input/f21_trade_balance.cs3"))
 
   #get tau from low resolution run with c200
@@ -141,6 +149,12 @@ highres <- function(cfg) {
   cfg$gms$optimization <- "nlp_par"
   cfg$gms$s15_elastic_demand <- 0
 
+  #get exogenous bioenergy demand and GHG prices from c200 run because these files may have been overwritten
+  write.magpie(readGDX(gdx,"f56_pollutant_prices_coupling"),"modules/56_ghg_policy/input/f56_pollutant_prices_coupling.cs3")
+  write.magpie(readGDX(gdx,"f56_pollutant_prices_emulator"),"modules/56_ghg_policy/input/f56_pollutant_prices_emulator.cs3")
+  write.magpie(readGDX(gdx,"f60_bioenergy_dem_coupling"),"modules/60_bioenergy/input/reg.2ndgen_bioenergy_demand.csv")
+  write.magpie(readGDX(gdx,"f60_bioenergy_dem_emulator"),"modules/60_bioenergy/input/glo.2ndgen_bioenergy_demand.csv")
+  
   #get regional afforestation patterns from low resolution run with c200
   aff <- dimSums(landForestry(gdx)[,,c("aff","ndc")],dim=3)
   #Take away initial NDC area for consistency with global afforestation limit

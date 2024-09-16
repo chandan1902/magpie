@@ -1,4 +1,4 @@
-*** |  (C) 2008-2023 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -7,6 +7,7 @@
 
 parameters
  pm_land_start(j,land)         Land initialization area (mio. ha)
+ pm_land_hist(t_ini10,j,land)  Land area for historial time steps (mio. ha)
  pcm_land(j,land)              Land area in previous time step including possible changes after optimization (mio. ha)
 ;
 
