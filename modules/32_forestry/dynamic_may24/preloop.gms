@@ -1,11 +1,12 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
 *** |  MAgPIE License Exception, version 1.0 (see LICENSE file).
 *** |  Contact: magpie@pik-potsdam.de
 
-*m_sigmoid_time_interpol(i32_plant_contr_fader,2020,2050,0.05,0);
+i32_recurring_cost(type32) = s32_recurring_cost;
+
 m_sigmoid_time_interpol(i32_plant_contr_growth_fader,s32_plant_contr_growth_startyear,s32_plant_contr_growth_endyear,s32_plant_contr_growth_startvalue,s32_plant_contr_growth_endvalue);
 
 p32_est_cost("plant") = s32_est_cost_plant;
@@ -147,18 +148,21 @@ p32_cdr_ac(t,j,ac) = 0;
 ini32(j,ac) = no;
 ini32(j,ac) = yes$(ord(ac) >= 1 AND ac.off < p32_rotation_cellular_harvesting("y1995",j));
 
-** divide initial forestry area by number of age classes within ini32
+** Set minimum share of plantations in planted forest
+p32_plantedforest(i) = f32_plantedforest(i);
+p32_plantedforest(i)$(p32_plantedforest(i) < s32_min_plant_shr) = s32_min_plant_shr;
+
 ** divide initial forestry area by number of age classes within ini32
 if(s32_initial_distribution = 0,
 ** Initialize with highest age class
-  p32_land_start_ac(j,"plant","acx") = pcm_land(j,"forestry") * sum(cell(i,j),f32_plantedforest(i));
-  p32_land_start_ac(j,"ndc","acx")   = pcm_land(j,"forestry") * sum(cell(i,j),1-f32_plantedforest(i));
+  p32_land_start_ac(j,"plant","acx") = pcm_land(j,"forestry") * sum(cell(i,j),p32_plantedforest(i));
+  p32_land_start_ac(j,"ndc","acx")   = pcm_land(j,"forestry") * sum(cell(i,j),1-p32_plantedforest(i));
 
 elseif s32_initial_distribution = 1,
 ** Initialize with equal distribution among rotation age classes
 ** Plantated forest area is divided into ndcs (other planted forest) and plantations
-    p32_land_start_ac(j,"plant",ac)$(ini32(j,ac)) = pm_land_start(j,"forestry") * sum(cell(i,j),f32_plantedforest(i))/p32_rotation_cellular_harvesting("y1995",j);
-    p32_land_start_ac(j,"ndc",ac)$(ini32(j,ac))   = pm_land_start(j,"forestry") * sum(cell(i,j),1- f32_plantedforest(i))/p32_rotation_cellular_harvesting("y1995",j);
+  p32_land_start_ac(j,"plant",ac)$(ini32(j,ac)) = pm_land_start(j,"forestry") * sum(cell(i,j),p32_plantedforest(i))/p32_rotation_cellular_harvesting("y1995",j);
+  p32_land_start_ac(j,"ndc",ac)$(ini32(j,ac))   = pm_land_start(j,"forestry") * sum(cell(i,j),1- p32_plantedforest(i))/p32_rotation_cellular_harvesting("y1995",j);
 
 );
 
@@ -170,32 +174,12 @@ loop(j,
     );
 );
 
-** Initialize forestry land types 
+** Initialize forestry land types
 pc32_land(j,type32,ac) = p32_land_start_ac(j,type32,ac);
 
-*** NPI/NDC policies BEGIN
 ** Afforestation policies NPI and NDCs
 p32_aff_pol(t,j) = round(f32_aff_pol(t,j,"%c32_aff_policy%"),6);
 
-* Calculate the remaining exogenous afforestation with respect to the maximum exogenous target over time.
-* `p32_aff_togo` is used to adjust `s32_max_aff_area` in the constraint `q32_max_aff`.
-p32_aff_togo(t,i) = smax(t2, sum(cell(i,j), p32_aff_pol(t2,j))) - sum(cell(i,j), p32_aff_pol(t,j));
-
-* Calculate the limit for endogenous afforestation
-* The global (`s32_max_aff_area`) and regional limit (`f32_max_aff_area`) for total afforestation (sum of endogenous and exogenous) is reduced by exogenous NPI/NDC afforestation (`p32_aff_pol`).
-if(s32_max_aff_area_glo = 1,
-  i32_max_aff_area_glo(t) = s32_max_aff_area - smax(t2, sum(j, p32_aff_pol(t2,j)));
-  i32_max_aff_area_glo(t)$(i32_max_aff_area_glo(t) < 1e-6) = 0;
-  i32_max_aff_area_glo(t)$(m_year(t) <= sm_fix_SSP2) = Inf;
-  i32_max_aff_area_reg(t,i) = 0;
-elseif s32_max_aff_area_glo = 0,
-  i32_max_aff_area_reg(t,i) = f32_max_aff_area(i) - smax(t2, sum(cell(i,j), p32_aff_pol(t2,j)));
-  i32_max_aff_area_reg(t,i)$(i32_max_aff_area_reg(t,i) < 1e-6) = 0;
-  i32_max_aff_area_reg(t,i)$(m_year(t) <= sm_fix_SSP2) = Inf;
-  i32_max_aff_area_glo(t) = 0;
-);
-
-*** NPI/NDC policies END
 
 *fix bph effect to zero for all age classes except the ac that is chosen for the bph effect to occur after planting (e.g. canopy closure)
 *fade-in from ac10 to ac30. First effect in ac10 (ord 3), last effect in ac30 (ord 7).
@@ -228,3 +212,16 @@ p32_land(t,j,type32,ac) = 0;
 
 * initialize forest disturbance losses
 p32_disturbance_loss_ftype32(t,j,"aff",ac) = 0;
+
+* Initialize biodiversity value
+vm_bv.l(j,"aff_co2p",potnatveg) =
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), pc32_land(j,"aff",ac)) *
+  p32_bii_coeff("aff",bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);
+
+vm_bv.l(j,"aff_ndc",potnatveg) =
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), pc32_land(j,"ndc",ac)) *
+  p32_bii_coeff("ndc",bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);
+
+vm_bv.l(j,"plant",potnatveg) =
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), pc32_land(j,"plant",ac)) *
+  p32_bii_coeff("plant",bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);

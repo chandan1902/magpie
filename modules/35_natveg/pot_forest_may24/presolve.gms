@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -174,6 +174,7 @@ p35_restoration_shift(j) = p35_land_restoration(j,"secdforest") - pc35_max_fores
 p35_restoration_shift(j)$(p35_restoration_shift(j) < 1e-6) = 0;
 p35_restoration_shift(j)$(p35_restoration_shift(j) > p35_land_restoration(j,"secdforest")) = p35_land_restoration(j,"secdforest");
 p35_land_restoration(j,"secdforest") = p35_land_restoration(j,"secdforest") - p35_restoration_shift(j);
+pm_land_conservation(t,j,"secdforest","restore") = p35_land_restoration(j,"secdforest");
 pm_land_conservation(t,j,"other","restore") = pm_land_conservation(t,j,"other","restore") + p35_restoration_shift(j);
 
 * set conservation bound
@@ -204,6 +205,7 @@ p35_land_restoration(j,"other") = pm_land_conservation(t,j,"other","restore");
 * Do not restore other land in areas where total natural
 * land area meets the total natural land conservation target
 p35_land_restoration(j,"other")$(sum(land_natveg, pcm_land(j,land_natveg)) >= sum((land_natveg, consv_type), pm_land_conservation(t,j,land_natveg,consv_type))) = 0;
+pm_land_conservation(t,j,"other","restore") = p35_land_restoration(j,"other");
 * set conservation bound
 vm_land.lo(j,"other") = pm_land_conservation(t,j,"other","protect") + p35_land_restoration(j,"other");
 
@@ -225,13 +227,17 @@ p35_min_forest(t,j)$(p35_min_forest(t,j) > pcm_land(j,"primforest") + pcm_land(j
   = pcm_land(j,"primforest") + pcm_land(j,"secdforest") + pcm_land(j,"forestry");
 p35_min_other(t,j)$(p35_min_other(t,j) > pcm_land(j,"other")) = pcm_land(j,"other");
 
+* NPI / NDC reversal
+if (m_year(t) >= s35_npi_ndc_reversal,
+  p35_min_forest(t,j) = 0;
+  p35_min_other(t,j) = 0;
+);
+
 ** Youngest age classes are not allowed to be harvested
 v35_hvarea_secdforest.fx(j,ac_est) = 0;
 v35_hvarea_other.fx(j,othertype35,ac_est) = 0;
 v35_secdforest_reduction.fx(j,ac_est) = 0;
 v35_other_reduction.fx(j,othertype35,ac_est) = 0;
-
-vm_prod_natveg.fx(j,"other","wood") = 0;
 
 if(s35_hvarea = 0,
  v35_hvarea_secdforest.fx(j,ac_sub) = 0;
@@ -242,3 +248,15 @@ elseif s35_hvarea = 1,
  v35_hvarea_primforest.fx(j) = (vm_land.l(j,"primforest") - vm_land.lo(j,"primforest"))*s35_hvarea_primforest*m_timestep_length_forestry;
  v35_hvarea_other.fx(j,othertype35,ac_sub) = (vm_land_other.l(j,othertype35,ac_sub) - vm_land_other.lo(j,othertype35,ac_sub))*s35_hvarea_other*m_timestep_length_forestry;
 );
+
+* Update biodiversity value
+vm_bv.l(j,"primforest",potnatveg) = 
+  pcm_land(j,"primforest") * fm_bii_coeff("primary",potnatveg) * fm_luh2_side_layers(j,potnatveg);
+
+vm_bv.l(j,"secdforest",potnatveg) = 
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), pc35_secdforest(j,ac)) *
+  fm_bii_coeff(bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);
+
+vm_bv.l(j,"other",potnatveg) = 
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), sum(othertype35, pc35_land_other(j,othertype35,ac))) *
+  fm_bii_coeff(bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);

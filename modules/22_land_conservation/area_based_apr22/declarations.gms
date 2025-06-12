@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -19,7 +19,7 @@ parameters
  p22_past_restore_pot(t,j)                          Potential pasture restoration area (mio. ha)
  p22_other_restore_pot(t,j)                         Potential other land restoration area (mio. ha)
  p22_country_weight(i)                              Land conservation country weight per region (1)
- p22_country_dummy(iso)                             Dummy parameter indicating whether country is affected by selected land conservation policy (1)
+ p22_country_switch(iso)                             Switch indicating whether country is affected by selected land conservation policy (1)
  i22_land_iso(iso)                                  Total land area at ISO level (mio. ha)
 ;
 

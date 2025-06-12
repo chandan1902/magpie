@@ -1,4 +1,4 @@
-# |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+# |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 # |  authors, and contributors see CITATION.cff file. This file is part
 # |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 # |  AGPL-3.0, you are granted additional permissions described in the
@@ -13,7 +13,7 @@
 # Author: Florian Humpenoeder
 
 library(magclass)
-library(gdx)
+library(gdx2)
 library(magpie4)
 library(lucode2)
 library(gms)
@@ -37,7 +37,10 @@ resultsarchive <- "/p/projects/rd3mod/models/results/magpie"
 # Load start_run(cfg) function which is needed to start MAgPIE runs
 source("scripts/start_functions.R")
 
-highres <- function(cfg) {
+# Plausible values for "res" (high resolution): "c1000" and "c2000"
+# Options for "tc" (13_tc realization): NULL (no change), "exo" and "endo_jan22"
+
+highres <- function(cfg = cfg, res = "c1000", tc = NULL) {
   #lock the model folder
   lockId <- gms::model_lock(timeout1 = 24)
   withr::defer(gms::model_unlock(lockId))
@@ -45,9 +48,6 @@ highres <- function(cfg) {
   if(any(!(modelstat(gdx) %in% c(2,7)))) stop("Modelstat different from 2 or 7 detected")
 
   cfg$output <- cfg$output[cfg$output!="extra/highres"]
-
-  # set high resolution, available options are c1000 and c2000
-  res <- "c1000"
 
   # search for matching high resolution file in repositories
   # pattern: "rev4.65_h12_*_cellularmagpie_c2000_MRI-ESM2-0-ssp370_lpjml-3eb70376.tgz"
@@ -101,10 +101,10 @@ highres <- function(cfg) {
   #note: using gdx files for more than the 1st time step sometimes pushes the model into corner solutions, which might result in infeasibilites.
   cfg$files2export$start <- c(cfg$files2export$start,
                               paste0(cfg$results_folder, "/", "magpie_y*.gdx"))
-  cfg$gms$s_use_gdx   <- 2
+  cfg$gms$s_use_gdx   <- 0
 
   #max resources for parallel runs
-  cfg$qos <- "standby_maxMem_dayMax"
+  cfg$qos <- "standby_highMem"
 
   # set force download to FALSE
   # otherwise data is download again when calling start_run(), which overwrites
@@ -139,10 +139,12 @@ highres <- function(cfg) {
   f21_trade_balance <- toolAggregate(ov_prod_reg - (ov_supply + import_for_feasibility), supreg)
   write.magpie(f21_trade_balance, paste0("modules/21_trade/input/f21_trade_balance.cs3"))
 
-  #get tau from low resolution run with c200
-  ov_tau <- readGDX(gdx, "ov_tau",select=list(type="level"))
-  write.magpie(ov_tau,"modules/13_tc/input/f13_tau_scenario.csv")
-  cfg$gms$tc <- "exo"
+  if(!is.null(tc)) {
+    #get tau from low resolution run with c200
+    ov_tau <- readGDX(gdx, "ov_tau",select=list(type="level"))
+    write.magpie(ov_tau,"modules/13_tc/input/f13_tau_scenario.csv")
+    cfg$gms$tc <- tc
+  }
 
   #use exo trade and parallel optimization
   cfg$gms$trade <- "exo"
@@ -150,16 +152,20 @@ highres <- function(cfg) {
   cfg$gms$s15_elastic_demand <- 0
 
   #get exogenous bioenergy demand and GHG prices from c200 run because these files may have been overwritten
-  write.magpie(readGDX(gdx,"f56_pollutant_prices_coupling"),"modules/56_ghg_policy/input/f56_pollutant_prices_coupling.cs3")
-  write.magpie(readGDX(gdx,"f56_pollutant_prices_emulator"),"modules/56_ghg_policy/input/f56_pollutant_prices_emulator.cs3")
-  write.magpie(readGDX(gdx,"f60_bioenergy_dem_coupling"),"modules/60_bioenergy/input/reg.2ndgen_bioenergy_demand.csv")
-  write.magpie(readGDX(gdx,"f60_bioenergy_dem_emulator"),"modules/60_bioenergy/input/glo.2ndgen_bioenergy_demand.csv")
-  
-  #get regional afforestation patterns from low resolution run with c200
+  a <- readGDX(gdx,"f56_pollutant_prices_coupling", react = "silent")
+  if(!is.null(a)) write.magpie(a,"modules/56_ghg_policy/input/f56_pollutant_prices_coupling.cs3")
+  a <- readGDX(gdx,"f56_pollutant_prices_emulator", react = "silent")
+  if(!is.null(a)) write.magpie(a,"modules/56_ghg_policy/input/f56_pollutant_prices_emulator.cs3")
+  a <- readGDX(gdx,"f60_bioenergy_dem_coupling", react = "silent")
+  if(!is.null(a)) write.magpie(a,"modules/60_bioenergy/input/reg.2ndgen_bioenergy_demand.csv")
+  a <- readGDX(gdx,"f60_bioenergy_dem_emulator", react = "silent")
+  if(!is.null(a)) write.magpie(a,"modules/60_bioenergy/input/glo.2ndgen_bioenergy_demand.csv")
+
+  #get regional afforestation/reforestation (AR) patterns from low resolution run with c200
   aff <- dimSums(landForestry(gdx)[,,c("aff","ndc")],dim=3)
-  #Take away initial NDC area for consistency with global afforestation limit
+  #Take away initial NDC area for consistency with global AR limit
   aff <- aff-setYears(aff[,1,],NULL)
-  #calculate maximum regional afforestation over time
+  #calculate maximum regional AR over time
   aff_max <- setYears(aff[,1,],NULL)
   for (r in getRegions(aff)) {
     aff_max[r,,] <- max(aff[r,,])
@@ -167,10 +173,10 @@ highres <- function(cfg) {
   aff_max[aff_max < 0] <- 0
   write.magpie(aff_max,"modules/32_forestry/input/f32_max_aff_area.cs4")
   cfg$gms$s32_max_aff_area_glo <- 0
-  #check
+  #check if regional AR exceeds global AR limit
   if(cfg$gms$s32_max_aff_area < Inf) {
-    indicator <- abs(sum(aff_max)-cfg$gms$s32_max_aff_area)
-    if(indicator > 1e-06) warning(paste("Global and regional afforestation limit differ by",indicator,"Mha"))
+    indicator <- sum(aff_max)-cfg$gms$s32_max_aff_area
+    if(indicator > 1e-06) warning(paste("Regional AR exceeds global AR limit by",indicator,"Mha"))
   }
 
   Sys.sleep(2)

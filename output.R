@@ -1,4 +1,4 @@
-# |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+# |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 # |  authors, and contributors see CITATION.cff file. This file is part
 # |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 # |  AGPL-3.0, you are granted additional permissions described in the
@@ -114,9 +114,9 @@ runOutputs <- function(comp=NULL, output=NULL, outputdir=NULL, submit=NULL) {
           sys.source(script,envir=tmp.env)
           rm(tmp.env)
         } else {
-          slurmModes <- yaml::read_yaml(slurmModes)$slurmjobs
-          if(submit %in% names(slurmModes)) {
-            command <- slurmModes[submit]
+          slurm <- yaml::read_yaml(slurmModes)$slurmjobs
+          if(submit %in% names(slurm)) {
+            command <- slurm[submit]
             command <- gsub("%NAME", rout_name, command)
             command <- gsub("%SCRIPT", rCommand, command)
             message(command)

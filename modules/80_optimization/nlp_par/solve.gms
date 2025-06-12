@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -13,6 +13,7 @@ p80_resolve_option(h) = 0;
 
 *** solver settings
 option nlp = conopt4;
+option threads = 1;
 magpie.solvelink = 3;
 magpie.optfile   = s80_optfile ;
 magpie.scaleopt  = 1 ;
@@ -20,12 +21,12 @@ magpie.solprint  = 0 ;
 magpie.holdfixed = 1 ;
 magpie.savepoint = 0;
 
-$onecho > conopt4.opt
-Lim_Variable = 1.e25
-$offecho
+put optfile;
+put 'Tol_Optimality = ', s80_toloptimal:12:11 /;
+putclose optfile;
 
 $onecho > conopt4.op2
-Flg_Prep = FALSE
+Lim_Variable = 1.e25
 $offecho
 
 h2(h) = no;
@@ -95,8 +96,6 @@ repeat
       if(p80_extra_solve(h) = 1,
         display "Resolve";
         p80_resolve_option(h) = p80_resolve_option(h) + 1;
-        display "Load solution from last time step as starting point";
-        execute_loadpoint 'fulldata.gdx';
         s80_resolve_option = sum(h2,p80_resolve_option(h2));
         display s80_resolve_option;
         if(p80_resolve_option(h) = 1,
@@ -108,12 +107,12 @@ repeat
           option nlp = conopt4;
           magpie.optfile = 1;         
         elseif p80_resolve_option(h) = 3, 
-          display "Modelstat > 2 | Retry solve with CONOPT4 w/o preprocessing";
+          display "Modelstat > 2 | Retry solve with CONOPT4 increasing largest allowable value";
           option nlp = conopt4;
           magpie.optfile = 2;         
         elseif p80_resolve_option(h) = 4, 
           display "Modelstat > 2 | Retry solve with CONOPT3";
-          option nlp = conopt;
+          option nlp = conopt3;
           magpie.optfile = 0;         
          );
         if(execerror > 0, execerror = 0);

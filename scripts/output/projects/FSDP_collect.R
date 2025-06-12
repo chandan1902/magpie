@@ -1,4 +1,4 @@
-# |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+# |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 # |  authors, and contributors see CITATION.cff file. This file is part
 # |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 # |  AGPL-3.0, you are granted additional permissions described in the
@@ -17,7 +17,7 @@ library(magclass)
 library(gms)
 library(magpiesets)
 library(data.table)
-library(gdx)
+library(gdx2)
 library(quitte)
 library(m4fsdp)
 library(stringr)

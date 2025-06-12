@@ -1,4 +1,4 @@
-*** |  (C) 2008-2023 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -40,6 +40,17 @@ p29_avl_cropland(t,j) = f29_avl_cropland(j,"%c29_marginal_land%") * (1 - p29_snv
 * Tree cover on cropland
 * ------------------------------------------------------- 
 
+** set bii coefficients
+if(m_year(t) <= sm_fix_SSP2,
+ p29_treecover_bii_coeff(bii_class_secd,potnatveg) = fm_bii_coeff(bii_class_secd,potnatveg)
+else
+ if(s29_treecover_bii_coeff = 0,
+  p29_treecover_bii_coeff(bii_class_secd,potnatveg) = fm_bii_coeff(bii_class_secd,potnatveg)
+ elseif s29_treecover_bii_coeff = 1,
+  p29_treecover_bii_coeff(bii_class_secd,potnatveg) = fm_bii_coeff("timber",potnatveg)
+ );
+);
+
 * Growth of trees on cropland is modelled by shifting age-classes according to time step length.
 s29_shift = m_timestep_length_forestry/5;
 * example: ac10 in t = ac5 (ac10-1) in t-1 for a 5 yr time step (s29_shift = 1)
@@ -64,11 +75,10 @@ if (s29_treecover_keep = 1,
  i29_treecover_target(t,j)$(i29_treecover_target(t,j) < pc29_treecover_share(j)) = pc29_treecover_share(j);
 );
 
-* Bounds for treecover. Only ac_est can increase in optimization. ac_sub can only decrease.
+* Bounds for treecover. Only ac_est can increase in optimization. ac_sub is fixed.
 v29_treecover.lo(j,ac_est) = 0;
 v29_treecover.up(j,ac_est) = Inf;
-v29_treecover.lo(j,ac_sub) = 0;
-v29_treecover.up(j,ac_sub) = pc29_treecover(j,ac_sub);
+v29_treecover.fx(j,ac_sub) = pc29_treecover(j,ac_sub);
 m_boundfix(v29_treecover,(j,ac_sub),l,1e-6);
 
 * set treecover penalty
@@ -110,3 +120,11 @@ else
 vm_fallow.lo(j) = 0;
 vm_fallow.up(j) = p29_avl_cropland(t,j);
 m_boundfix(vm_fallow,(j),l,1e-6);
+
+* Update biodiversity value
+vm_bv.l(j,"crop_fallow",potnatveg) = 
+  vm_fallow.l(j) * fm_bii_coeff("crop_per",potnatveg) * fm_luh2_side_layers(j,potnatveg);
+
+vm_bv.l(j,"crop_tree",potnatveg) =
+  sum(bii_class_secd, sum(ac_to_bii_class_secd(ac,bii_class_secd), pc29_treecover(j,ac)) * 
+  p29_treecover_bii_coeff(bii_class_secd,potnatveg)) * fm_luh2_side_layers(j,potnatveg);

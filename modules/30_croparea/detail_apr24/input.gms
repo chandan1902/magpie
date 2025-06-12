@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -28,7 +28,7 @@ scalars
  s30_betr_start_noselect         Share of bioenergy land on total cropland in start year (1) / 0 /
  s30_betr_target                 Share of bioenergy land on total cropland in target year (1) / 0 /
  s30_betr_target_noselect        Share of bioenergy land on total cropland in target year (1) / 0 /
- s30_betr_penalty                Penalty for violation of betr target (USD05MER per ha) / 2000 /
+ s30_betr_penalty                Penalty for violation of betr target (USD17MER per ha) / 2460 /
  s30_annual_max_growth Max annual cropland growth as share of previous cropland (1) / Inf /
 ;
 
@@ -82,7 +82,7 @@ m_fillmissingyears(fm_croparea,"j,w,kcr");
 
 ********* CROP-ROTATIONAL CONSTRAINT *******************************************
 
-table f30_rotation_incentives(rota30,incentscen30) penalties for violating rotation rules (USD05MER)
+table f30_rotation_incentives(rota30,incentscen30) penalties for violating rotation rules (USD17MER)
 $ondelim
 $include "./modules/30_croparea/detail_apr24/input/f30_rotation_incentives.csv"
 $offdelim

@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -27,8 +27,8 @@ parameters
  p35_carbon_density_other(t,j,othertype35,ac,ag_pools)   Carbon density other land (tC per ha)
  p35_disturbance_loss_secdf(t,j,ac)                      Loss due to disturbances in secondary forest (mio. ha)
  p35_disturbance_loss_primf(t,j)                         Loss due to disturbances in primary forest (mio. ha)
- i35_plantedclass_ac(j,ac)                               Area of age-classes in secondary forest (1)
- p35_poulter_dist(j,ac)                                  Share of age-classes in secondary forest (1)
+ p35_secdf_ageclass(j,ac)                                Secondadry forest area in 5-year age-classes (mio. ha)
+ p35_secdf_ageclass_dist(j,ac)                           Share of age-classes in secondary forest (1)
  p35_land_start_ac(j,ac,land_natveg)                     Initial Natural vegetation area (mio. ha)
  p35_protection_dist(j,ac)                               Distribution of secondary forest protection (1)
  p35_land_restoration(j,land_natveg)                     Actual secondary forest and other land restoration area (mio. ha)
@@ -43,6 +43,7 @@ equations
  q35_carbon_other(j,ag_pools,stockType)                  Other land carbon stock calculation (mio tC)
  q35_min_forest(j)                                       Minimum forest land constraint (mio. ha)
  q35_min_other(j)                                        Minimum other land constraint (mio. ha)
+ q35_natforest_reduction(j)                              Natural forest reduction (mio. ha)
  q35_landdiff                                            Difference in natveg land (mio. ha)
  q35_other_expansion(j,othertype35)                      Other land expansion (mio. ha)
  q35_other_reduction(j,othertype35,ac)                   Other land reduction (mio. ha)
@@ -60,7 +61,7 @@ equations
  q35_prod_secdforest(j)                                  Production of woody biomass from secondary forests (mio. tDM per yr)
  q35_prod_primforest(j)                                  Production of woody biomass from primary forests (mio. tDM per yr)
  q35_prod_other(j)                                       Production of woody biomass from other land (mio. tDM per yr)
- q35_cost_hvarea(i)                                      Cost of harvesting natural vegetation (mio. USD)
+ q35_cost_hvarea(i)                                      Cost of harvesting natural vegetation (mio. USD17MER)
  q35_bv_primforest(j,potnatveg)                          Biodiversity value of primary forest (mio. ha)
  q35_bv_secdforest(j,potnatveg)                          Biodiversity value of secondary forest (mio. ha)
  q35_bv_other(j,potnatveg)                               Biodiversity value of other land (mio. ha)
@@ -82,7 +83,8 @@ positive variables
   v35_hvarea_other(j,othertype35,ac)                     Harvested area from other land (mio. ha)
   v35_hvarea_primforest(j)                               Harvested area from primary forest (mio. ha)
   vm_prod_natveg(j,land_natveg,kforestry)                Production of woody biomass from natural vegetation (mio. tDM per yr)
-  vm_cost_hvarea_natveg(i)                               Cost of harvesting natural vegetation (mio. USD)
+  vm_cost_hvarea_natveg(i)                               Cost of harvesting natural vegetation (mio. USD17MER)
+  vm_natforest_reduction(j)                              Natural forest reduction (mio. ha)
 ;
 
 
@@ -100,7 +102,8 @@ parameters
  ov35_hvarea_other(t,j,othertype35,ac,type)          Harvested area from other land (mio. ha)
  ov35_hvarea_primforest(t,j,type)                    Harvested area from primary forest (mio. ha)
  ov_prod_natveg(t,j,land_natveg,kforestry,type)      Production of woody biomass from natural vegetation (mio. tDM per yr)
- ov_cost_hvarea_natveg(t,i,type)                     Cost of harvesting natural vegetation (mio. USD)
+ ov_cost_hvarea_natveg(t,i,type)                     Cost of harvesting natural vegetation (mio. USD17MER)
+ ov_natforest_reduction(t,j,type)                    Natural forest reduction (mio. ha)
  oq35_land_secdforest(t,j,type)                      Secdforest land pool calculation (mio. ha)
  oq35_land_other(t,j,type)                           Other land pool calculation (mio. ha)
  oq35_carbon_primforest(t,j,ag_pools,stockType,type) Primforest carbon stock calculation (mio tC)
@@ -108,6 +111,7 @@ parameters
  oq35_carbon_other(t,j,ag_pools,stockType,type)      Other land carbon stock calculation (mio tC)
  oq35_min_forest(t,j,type)                           Minimum forest land constraint (mio. ha)
  oq35_min_other(t,j,type)                            Minimum other land constraint (mio. ha)
+ oq35_natforest_reduction(t,j,type)                  Natural forest reduction (mio. ha)
  oq35_landdiff(t,type)                               Difference in natveg land (mio. ha)
  oq35_other_expansion(t,j,othertype35,type)          Other land expansion (mio. ha)
  oq35_other_reduction(t,j,othertype35,ac,type)       Other land reduction (mio. ha)
@@ -125,7 +129,7 @@ parameters
  oq35_prod_secdforest(t,j,type)                      Production of woody biomass from secondary forests (mio. tDM per yr)
  oq35_prod_primforest(t,j,type)                      Production of woody biomass from primary forests (mio. tDM per yr)
  oq35_prod_other(t,j,type)                           Production of woody biomass from other land (mio. tDM per yr)
- oq35_cost_hvarea(t,i,type)                          Cost of harvesting natural vegetation (mio. USD)
+ oq35_cost_hvarea(t,i,type)                          Cost of harvesting natural vegetation (mio. USD17MER)
  oq35_bv_primforest(t,j,potnatveg,type)              Biodiversity value of primary forest (mio. ha)
  oq35_bv_secdforest(t,j,potnatveg,type)              Biodiversity value of secondary forest (mio. ha)
  oq35_bv_other(t,j,potnatveg,type)                   Biodiversity value of other land (mio. ha)

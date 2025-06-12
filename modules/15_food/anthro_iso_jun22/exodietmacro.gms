@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -105,17 +105,62 @@ if (s15_run_diet_postprocessing = 1,
                  *(p15_kcal_pc_iso_plant_orig(t,iso)
                  + p15_kcal_pc_iso_rumdairy_orig(t,iso) * (1- i15_rumdairy_fadeout(t,iso)));
 
-*** Substitution of ruminant meat and dairy products (kfo_rd) with single-cell protein (SCP) based on protein/cap/day
-  i15_protein_to_kcal_ratio(t,kfo) = fm_nutrition_attributes(t,kfo,"protein") / fm_nutrition_attributes(t,kfo,"kcal");
-* Before the substitution, kfo_rd is converted from kcal/cap/day to g protein/cap/day
-* using i15_protein_to_kcal_ratio(t,kfo_rd).
-* After the substitution of kfo_rd with SCP (1-i15_rumdairy_scp_fadeout), SCP is converted
-* back to kcal/cap/day using i15_protein_to_kcal_ratio(t,"scp").
-  p15_kcal_pc_iso(t,iso,"scp") = p15_kcal_pc_iso(t,iso,"scp") +
-    sum(kfo_rd, p15_kcal_pc_iso(t,iso,kfo_rd) * (1-i15_rumdairy_scp_fadeout(t,iso)) *
-    i15_protein_to_kcal_ratio(t,kfo_rd)) / i15_protein_to_kcal_ratio(t,"scp");
-  p15_kcal_pc_iso(t,iso,kfo_rd) = p15_kcal_pc_iso(t,iso,kfo_rd) * i15_rumdairy_scp_fadeout(t,iso);
-
+*' @code
+*' Substitution of ruminant meat and dairy products (kfo_rd) with single-cell protein (SCP) based on protein/cap/day:
+*'
+*' Before the substitution, kfo_rd is converted from kcal/cap/day to g protein/cap/day using i15_protein_to_kcal_ratio(t,kfo_rd).
+*' After the substitution of kfo_rd with SCP (1-i15_rumdairy_scp_fadeout), SCP is converted 
+*' back to kcal/cap/day using i15_protein_to_kcal_ratio(t,"scp").
+*'
+*' Protein to kcal ratio:
+i15_protein_to_kcal_ratio(t,kfo) = fm_nutrition_attributes(t,kfo,"protein") / fm_nutrition_attributes(t,kfo,"kcal");
+*'
+*' Increase of single-cell protein (SCP):
+p15_protein_pc_iso_scp(t,iso,kfo_rd) = p15_kcal_pc_iso(t,iso,kfo_rd) * (1-i15_rumdairy_scp_fadeout(t,iso)) * i15_protein_to_kcal_ratio(t,kfo_rd);
+p15_kcal_pc_iso(t,iso,"scp") = p15_kcal_pc_iso(t,iso,"scp") + sum(kfo_rd, p15_protein_pc_iso_scp(t,iso,kfo_rd)) / i15_protein_to_kcal_ratio(t,"scp");
+*'
+*' Reduction of ruminant meat and dairy products (kfo_rd):
+p15_kcal_pc_iso(t,iso,kfo_rd) = p15_kcal_pc_iso(t,iso,kfo_rd) * i15_rumdairy_scp_fadeout(t,iso);
+*'
+*' Plant oil and sugar demands as ingredients for animal-free milk alternative production using single cell protein 
+*' are calculated based on the ratio of fat or sugar to protein in cow milk. 
+*' This ratio is typically reported on a mass basis, but the ratio is converted here to be based on caloric content. 
+*' Cow milk content is chosen as the dominant source of milk produced globally.
+*' Data sources: @muehlhoff_milk_2013 and @fao_food_2004
+*'
+p15_kcal_pc_iso(t,iso,"oils") = p15_kcal_pc_iso(t,iso,"oils") 
+   + sum(kfo_rd$sameas(kfo_rd,"livst_milk"), p15_protein_pc_iso_scp(t,iso,kfo_rd)) / 
+     s15_scp_protein_per_milk * s15_scp_fat_per_milk * fm_nutrition_attributes(t,"oils", "kcal");
+*'
+p15_kcal_pc_iso(t,iso,"sugar") = p15_kcal_pc_iso(t,iso,"sugar") 
+   + sum(kfo_rd$sameas(kfo_rd,"livst_milk"), p15_protein_pc_iso_scp(t,iso,kfo_rd)) / 
+     s15_scp_protein_per_milk * s15_scp_sugar_per_milk * fm_nutrition_attributes(t, "sugar" ,"kcal");
+*' 
+*' The ratio of fat to protein in raw microbial biomass (used as single cell protein) is much lower than for 
+*' plant based meat alternatives and animal based meat products. If the desired microbial product is alternative meat, 
+*' this may require supplementation with plant based fats to more closely match other existing products. 
+*' It is therefore possible to choose whether microbial biomass should be supplemented with plant based oil, 
+*' which drives additional demand for plant based oil production in MAgPIE. 
+*' For alternative microbial meats supplemented with fat, the desired fat to protein ratio is given 
+*' as 2:3 on a mass basis, analogous to similar products. Because microbial biomass already contains some fats, 
+*' the additional amount of plant based fat needed is given as the difference between the amount of fat present 
+*' in microbial biomass and the amount of fat needed to reach the desired protein to fat ratio. 
+*' Unlike additional plant oil and sugar demand for microbial milk, the additional amount of plant fat needed 
+*' for microbial meat is calculated dynamically based on the protein content of microbial biomass. 
+*' This is because the microbial protein content varies depending on the specific type of microbes used 
+*' (e.g. bacteria or funghi), whereas the nutritional content of cow milk is assumed to be fixed. 
+*' If the microbial protein is therefore changed, the amount of fat must also change to keep the same 
+*' fat to protein ratio. It is also assumed, unlike for microbial milk, that additional carbohydrates 
+*' (e.g., sugar) are not required for alternative microbial meats. This is because meat products contain 
+*' very little or no carbohydrates. 
+*' Data sources: @mazac_novelfoods_2023 and @jarvio_LCA_MP_2021
+*' 
+p15_kcal_pc_iso(t,iso,"oils")$(s15_scp_supplement_fat_meat = 1) = p15_kcal_pc_iso(t,iso,"oils") 
+   + sum(kfo_rd$sameas(kfo_rd,"livst_rum"), p15_protein_pc_iso_scp(t,iso,kfo_rd)) / 
+     fm_nutrition_attributes(t,"scp", "protein") * (fm_nutrition_attributes(t,"scp", "protein") * 
+     s15_scp_fat_protein_ratio_meat - s15_scp_fat_content) * fm_nutrition_attributes(t,"oils", "kcal");
+*' 
+*' @stop
 
 * Conditional reduction of livestock products (without fish) depending on s15_kcal_pc_livestock_supply_target.
 * Optional substitution with plant-based products depending on s15_livescen_target_subst.
@@ -713,9 +758,21 @@ if (s15_exo_waste = 1,
 *' Finally, countries with zero food demand according to FAOSTAT are calibrated
 *' down to zero to match FAO world totals.
 *' Values are rounded to avoid path dependencies of MAgPIE solver.
-   p15_kcal_pc_calibrated(t,i,kfo) = p15_kcal_pc(t,i,kfo) + p15_balanceflow_kcal(t,i,kfo);
+   p15_kcal_pc_calibrated_alliter(t,i,kfo,curr_iter15) = p15_kcal_pc(t,i,kfo) + p15_balanceflow_kcal(t,i,kfo);
+   p15_kcal_pc_calibrated_alliter(t,i,kfo,curr_iter15)$(p15_kcal_pc_calibrated_alliter(t,i,kfo,curr_iter15) < 0) = 0;
+
+*' If the model requires more than 3 iterations, the convergence should be supported by averaging between iterations
+   if (p15_iteration_counter(t) <= 3,
+     p15_kcal_pc_calibrated(t,i,kfo) = sum(curr_iter15, p15_kcal_pc_calibrated_alliter(t,i,kfo,curr_iter15));
+   else
+     p15_kcal_pc_calibrated(t,i,kfo) = 
+       sum(curr_iter15, p15_kcal_pc_calibrated_alliter(t,i,kfo,curr_iter15) * (1-s15_convergence_partstep))
+       + sum(prev_iter15, p15_kcal_pc_calibrated_alliter(t,i,kfo,prev_iter15) * (s15_convergence_partstep));
+   );
+   
+   
+   
    p15_kcal_pc_calibrated(t,i,kfo) = round(p15_kcal_pc_calibrated(t,i,kfo), 2);
-   p15_kcal_pc_calibrated(t,i,kfo)$(p15_kcal_pc_calibrated(t,i,kfo) < 0) = 0;
 
 *' @stop
  );

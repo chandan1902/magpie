@@ -1,4 +1,4 @@
-# |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+# |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 # |  authors, and contributors see CITATION.cff file. This file is part
 # |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 # |  AGPL-3.0, you are granted additional permissions described in the
@@ -200,7 +200,7 @@ fsecScenario <- function(scenario) {
             )
   # Assign selected scenario to cfg
   cfg <- setScenario(cfg, x[[scenario]]$standard)
-  cfg <- setScenario(cfg, x[[scenario]]$fsec, scenario_config = "config/scenario_fsec.csv")
+  cfg <- setScenario(cfg, x[[scenario]]$fsec, scenario_config = "config/projects/scenario_config_fsec.csv")
 
   # Download gridded population data
   gms::download_unpack(input = "FSEC_populationScenarios_v2_22-08-22.tgz",
@@ -214,7 +214,7 @@ fsecScenario <- function(scenario) {
   # general
   cfg$title       <- paste(v, scenario, sep = "")
   cfg$recalibrate <- FALSE
-  cfg$qos         <- "standby_maxMem_dayMax"
+  cfg$qos         <- "standby_highMem"
   cfg$output      <- c("extra/highres",
                        "extra/disaggregation",
                        "projects/FSEC_nitrogenPollution",
@@ -226,7 +226,7 @@ fsecScenario <- function(scenario) {
                        "rds_report")
   cfg$force_download  <- TRUE
   cfg$gms$s80_optfile <- 0
-  cfg$gms$s80_maxiter <- 100
+  cfg$gms$s80_maxiter <- 30
 
   return(cfg)
 }

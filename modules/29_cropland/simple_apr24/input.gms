@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -47,7 +47,7 @@ sets
                       UGA,UKR,UMI,URY,USA,UZB,VAT,VCT,VEN,VGB,
                       VIR,VNM,VUT,WLF,WSM,YEM,ZAF,ZMB,ZWE /
 
-land_snv(land) land types allowed in the SNV policy / secdforest, forestry, past, other /
+land_snv(land) land types allowed in the SNV policy / secdforest, other /
 ;
 
 ********* AVAILABLE CROPLAND *******************************************

@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -11,12 +11,11 @@ scalars
 ;
 
 parameters
- i32_max_aff_area_glo(t)                            Maximum global endogenous afforestation area (mio. ha)
- i32_max_aff_area_reg(t,i)                          Maximum regional endogenous afforestation area (mio. ha)
  p32_aff_pol(t,j)                                   NDC forest stock (mio. ha)
  p32_aff_pol_timestep(t,j)                          NDC afforestation per time step (mio. ha)
  p32_aff_pot(t,j)                                   Potential afforestation area (mio. ha)
- p32_aff_togo(t,i)                                  Remaining exogenous afforestation wrt to the maximum exogenous target over time (mio. ha)
+ p32_max_aff_area_glo(t)                            Remaining afforestation area wrt to the maximum exogenous target over time (mio. ha)
+ p32_max_aff_area_reg(t,i)                          Remaining regional afforestation area wrt to the maximum exogenous target over time (mio. ha)
  p32_carbon_density_ac(t,j,type32,ac,ag_pools)      Carbon density for ac and ag_pools (tC per ha)
  p32_carbon_density_ac_forestry(t_all,j,ac)         Above ground carbon density for age classes and carbon pools (tC per ha)
  p32_carbon_density_ac_marg(t_all,j,ac)             Marginal above ground carbon density for age classes and carbon pools (tC per ha)
@@ -54,16 +53,18 @@ parameters
  p32_forestry_product_dist(t,i,kforestry)           Distribution of wood products (1)
  p32_future_to_current_demand_ratio(t,i)            Ratio of future and current timber demand (1)
  p32_demand_forestry_future(t,i,kforestry)          Future forestry demand in current time step (tDM per yr)
- p32_est_cost(type32)                               Establishment cost (USD per ha)
+ p32_est_cost(type32)                               Establishment cost (USD17MER per ha)
+ i32_recurring_cost(type32)                         Recurring costs (USD17MER per ha)
+ p32_plantedforest(i)                               Planted forest (mio. ha)
 ;
 
 positive variables
  vm_cost_fore(i)                                    Forestry costs (Mio USD)
- v32_cost_hvarea(i)                                 Cost of harvesting timber from forests (mio. USD per yr)
+ v32_cost_hvarea(i)                                 Cost of harvesting timber from forests (mio. USD17MER per yr)
  v32_land(j,type32,ac)                              Forestry land pools (mio. ha)
  v32_land_missing(j)                                Technical area balance term for timber plantation establishment (mio. ha)
  vm_landdiff_forestry                               Aggregated difference in forestry land compared to previous timestep (mio. ha)
- v32_cost_recur(i)                                  Recurring forest management costs (USD per ha)
+ v32_cost_recur(i)                                  Recurring forest management costs (USD17MER per ha)
  v32_land_expansion(j,type32)                       Forestry land expansion (mio. ha)
  v32_land_reduction(j,type32,ac)                    Forestry land reduction (mio. ha)
  v32_cost_establishment(i)                          Cost of establishment calculated at the current time step (mio. USD)
@@ -73,6 +74,8 @@ positive variables
  vm_landreduction_forestry(j,type32)                Forestry land reduction (mio. ha)
  vm_land_forestry(j,type32)                         Forestry land pools (mio. ha)
  v32_prod_forestry_future(i)                        Future expected production of woody biomass from commercial plantations (mio. tDM per yr)
+ v32_land_replant(j)                                Harvested and replanted area in timber plantations (mio. ha)
+ v32_ndc_area_missing(j)                            Technical variable reflecting missing area towards the NPI NDC re-afforestation target (mio. ha)
 ;
 
 variables
@@ -89,6 +92,7 @@ equations
  q32_max_aff                                        Maximum total global afforestation (mio. ha)
  q32_max_aff_reg(i)                                 Maximum total regional afforestation (mio. ha)
  q32_aff_pol(j)                                     Afforestation policy constraint (mio. ha)
+ q32_ndc_aff_limit(j)                               Constraint for avoiding that NPI NDC re-afforestation happens at the cost of forests and other natural vegetation (mio. ha)
  q32_aff_est(j)                                     Afforestation constraint for establishment age classes (mio. ha)
  q32_hvarea_forestry(j,ac)                          Plantations area harvest (mio. ha)
  q32_cost_recur(i)                                  Recurruing costs (mio. USD)
@@ -101,24 +105,26 @@ equations
  q32_cost_establishment(i)                          Present value of cost of establishment (mio. USD)
  q32_bgp_aff(j,ac)                                  Biophysical afforestation calculation (mio. tCeq)
  q32_forestry_est(j,type32,ac)                      Distribution of forestry establishment over ac_est (mio. ha)
- q32_cost_hvarea(i)                                Cost of harvesting timber from forests (mio. USD per yr)
+ q32_cost_hvarea(i)                                Cost of harvesting timber from forests (mio. USD17MER per yr)
  q32_prod_forestry(j)                              Production of woody biomass from commercial plantations (mio. tDM per yr)
  q32_bv_aff(j,potnatveg)                           Biodiversity value for aff forestry land (Mha)
  q32_bv_ndc(j,potnatveg)                           Biodiversity value for ndc forestry land (Mha)
  q32_bv_plant(j,potnatveg)                         Biodiversity value for plantations (Mha)
  q32_land_expansion_forestry(j,type32)             Forestry land expansion (mio. ha)
  q32_land_reduction_forestry(j,type32)             Forestry land reduction (mio. ha)
+ q32_land_replant(j)                               Harvested and replanted area in timber plantations (mio. ha)
+ q32_co2p_aff_limit(j)                             Annual upper limit for re-afforestation (mio. ha per yr)
 ;
 
 
 *#################### R SECTION START (OUTPUT DECLARATIONS) ####################
 parameters
  ov_cost_fore(t,i,type)                        Forestry costs (Mio USD)
- ov32_cost_hvarea(t,i,type)                    Cost of harvesting timber from forests (mio. USD per yr)
+ ov32_cost_hvarea(t,i,type)                    Cost of harvesting timber from forests (mio. USD17MER per yr)
  ov32_land(t,j,type32,ac,type)                 Forestry land pools (mio. ha)
  ov32_land_missing(t,j,type)                   Technical area balance term for timber plantation establishment (mio. ha)
  ov_landdiff_forestry(t,type)                  Aggregated difference in forestry land compared to previous timestep (mio. ha)
- ov32_cost_recur(t,i,type)                     Recurring forest management costs (USD per ha)
+ ov32_cost_recur(t,i,type)                     Recurring forest management costs (USD17MER per ha)
  ov32_land_expansion(t,j,type32,type)          Forestry land expansion (mio. ha)
  ov32_land_reduction(t,j,type32,ac,type)       Forestry land reduction (mio. ha)
  ov32_cost_establishment(t,i,type)             Cost of establishment calculated at the current time step (mio. USD)
@@ -128,6 +134,8 @@ parameters
  ov_landreduction_forestry(t,j,type32,type)    Forestry land reduction (mio. ha)
  ov_land_forestry(t,j,type32,type)             Forestry land pools (mio. ha)
  ov32_prod_forestry_future(t,i,type)           Future expected production of woody biomass from commercial plantations (mio. tDM per yr)
+ ov32_land_replant(t,j,type)                   Harvested and replanted area in timber plantations (mio. ha)
+ ov32_ndc_area_missing(t,j,type)               Technical variable reflecting missing area towards the NPI NDC re-afforestation target (mio. ha)
  ov_cdr_aff(t,j,ac,aff_effect,type)            Expected bgc (CDR) and local bph effects of afforestation depending on planning horizon (mio. tC)
  oq32_cost_total(t,i,type)                     Total forestry costs constraint (mio. USD)
  oq32_land(t,j,type)                           Land constraint (mio. ha)
@@ -138,6 +146,7 @@ parameters
  oq32_max_aff(t,type)                          Maximum total global afforestation (mio. ha)
  oq32_max_aff_reg(t,i,type)                    Maximum total regional afforestation (mio. ha)
  oq32_aff_pol(t,j,type)                        Afforestation policy constraint (mio. ha)
+ oq32_ndc_aff_limit(t,j,type)                  Constraint for avoiding that NPI NDC re-afforestation happens at the cost of forests and other natural vegetation (mio. ha)
  oq32_aff_est(t,j,type)                        Afforestation constraint for establishment age classes (mio. ha)
  oq32_hvarea_forestry(t,j,ac,type)             Plantations area harvest (mio. ha)
  oq32_cost_recur(t,i,type)                     Recurruing costs (mio. USD)
@@ -150,12 +159,14 @@ parameters
  oq32_cost_establishment(t,i,type)             Present value of cost of establishment (mio. USD)
  oq32_bgp_aff(t,j,ac,type)                     Biophysical afforestation calculation (mio. tCeq)
  oq32_forestry_est(t,j,type32,ac,type)         Distribution of forestry establishment over ac_est (mio. ha)
- oq32_cost_hvarea(t,i,type)                    Cost of harvesting timber from forests (mio. USD per yr)
+ oq32_cost_hvarea(t,i,type)                    Cost of harvesting timber from forests (mio. USD17MER per yr)
  oq32_prod_forestry(t,j,type)                  Production of woody biomass from commercial plantations (mio. tDM per yr)
  oq32_bv_aff(t,j,potnatveg,type)               Biodiversity value for aff forestry land (Mha)
  oq32_bv_ndc(t,j,potnatveg,type)               Biodiversity value for ndc forestry land (Mha)
  oq32_bv_plant(t,j,potnatveg,type)             Biodiversity value for plantations (Mha)
  oq32_land_expansion_forestry(t,j,type32,type) Forestry land expansion (mio. ha)
  oq32_land_reduction_forestry(t,j,type32,type) Forestry land reduction (mio. ha)
+ oq32_land_replant(t,j,type)                   Harvested and replanted area in timber plantations (mio. ha)
+ oq32_co2p_aff_limit(t,j,type)                 Annual upper limit for re-afforestation (mio. ha per yr)
 ;
 *##################### R SECTION END (OUTPUT DECLARATIONS) #####################

@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -24,16 +24,16 @@ $setglobal c32_shock_scenario  none
 
 scalars
   s32_hvarea                      Flag for harvested area and establishemt (0=zero 1=exognous 2=endogneous) / 2 /
-  s32_est_cost_plant              Establishment cost for plantations (USD per ha) / 2000 /
-  s32_est_cost_natveg             Establishment cost for natural vegetation (USD per ha) / 2000 /
-  s32_recurring_cost              Recurring costs (USD per ha) / 500 /
-  s32_harvesting_cost             Harvesting cost (USD per ha) / 2000 /
-  s32_planing_horizon             Afforestation planing horizon (years)            / 50 /
+  s32_est_cost_plant              Establishment cost for plantations (USD17MER per ha) / 2460 /
+  s32_est_cost_natveg             Establishment cost for natural vegetation (USD17MER per ha) / 2460 /
+  s32_recurring_cost              Recurring costs (USD17MER per ha) / 615 /
+  s32_harvesting_cost             Harvesting cost (USD17MER per ha) / 1230 /
+  s32_planning_horizon             Afforestation planing horizon (years)            / 50 /
   s32_rotation_extension          Rotation extension factor 1=original rotations 2=100 percent increase in rotations etc (1) / 1 /
   s32_faustmann_rotation          Switch to activate faustmann rotations (1=on 0=off) / 0 /
   s32_initial_distribution        Switch to Activate ageclass distribution in plantations 0=off 1=equal distribution / 1 /
-  s32_price                       Price for timber (USD)      / 45 /
-  s32_free_land_cost              Penalty for technial area balance term (USD per ha) / 1e+06 /
+  s32_price                       Price for timber (USD17MER)      / 55 /
+  s32_free_land_cost              Penalty for technial area balance term (USD17MER per ha) / 1e+06 /
   s32_max_aff_area                Maximum total global afforestation (mio. ha)    / Inf /
   s32_aff_plantation              Switch for using growth curves for afforestation 0=natveg 1=plantations (1) / 0 /
   s32_tcre_local                  Switch for local (1) or global (0) TRCE factors (1) / 1 /
@@ -42,12 +42,15 @@ scalars
   s32_aff_bii_coeff               BII coefficent to be used for CO2 price driven afforestation 0=natural vegetation 1=plantation (1) / 0 /
   s32_max_aff_area_glo            Switch for global or regional afforestation constraint (1) / 1 /
   s32_aff_prot                    Switch for protection of afforested areas (0=until end of planning horizon 1=forever) / 1 /
-  s32_plant_contr_growth_startyear  Start year for plantation contribution growth fader (year) / 2020 /
-  s32_plant_contr_growth_endyear    End year for plantation contribution growth fader (year) / 2050 /
-  s32_plant_contr_growth_startvalue Start value for plantation contribution growth fader (percent per year) / 0.05 /
+  s32_plant_contr_growth_startyear  Start year for plantation contribution growth fader (year) / 1995 /
+  s32_plant_contr_growth_endyear    End year for plantation contribution growth fader (year) / 2025 /
+  s32_plant_contr_growth_startvalue Start value for plantation contribution growth fader (percent per year) / 0.07 /
   s32_plant_contr_growth_endvalue   End value for plantation contribution growth fader (percent per year) / 0 /
-  s32_plant_contr_max               Maximum plantation contribution for establishment decision (percent) / 0.5 /
+  s32_plant_contr_max               Maximum plantation contribution for establishment decision (percent) / 1 /
   s32_demand_establishment          Boolean switch for establishment demand assumption 1=forward looking 0=static (1) / 1 /
+  s32_npi_ndc_reversal              Year in which NPI NDC reversal should take place (1) / Inf /
+  s32_min_plant_shr                 Minimum share of plantations in planted forests (1) / 0.05 /
+  s32_annual_aff_limit              Annual upper limit for re-afforestation as share of overall forest establishment potential (1) / 0.03 /
 ;
 
 parameter f32_aff_mask(j) afforestation mask (binary)

@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -109,7 +109,7 @@ sets
 
 * Costs of pumping are calculated for India as per methodology in forthcoming paper by Singh et.al.
 parameter
-f42_pumping_cost(t_all,i) Cost of pumping irrigation water (USD05MER per m^3)
+f42_pumping_cost(t_all,i) Cost of pumping irrigation water (USD17MER per m^3)
 /
 $ondelim
 $include "./modules/42_water_demand/input/f42_pumping_cost.cs4"

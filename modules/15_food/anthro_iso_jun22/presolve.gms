@@ -1,4 +1,4 @@
-*** |  (C) 2008-2024 Potsdam Institute for Climate Impact Research (PIK)
+*** |  (C) 2008-2025 Potsdam Institute for Climate Impact Research (PIK)
 *** |  authors, and contributors see CITATION.cff file. This file is part
 *** |  of MAgPIE and licensed under AGPL-3.0-or-later. Under Section 7 of
 *** |  AGPL-3.0, you are granted additional permissions described in the
@@ -13,18 +13,18 @@ if(m_year(t) <= sm_fix_SSP2,
  i15_dem_halfsat(iso,regr15)     = f15_demand_paras(regr15,"SSP2","halfsaturation");
  i15_dem_nonsat(iso,regr15)      = f15_demand_paras(regr15,"SSP2","non_saturation");
 else
- i15_dem_intercept(iso,regr15)   = f15_demand_paras(regr15,"%c15_food_scenario%","intercept")*p15_country_dummy(iso)
-                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","intercept")*(1-p15_country_dummy(iso));
- i15_dem_saturation(iso,regr15)  = f15_demand_paras(regr15,"%c15_food_scenario%","saturation")*p15_country_dummy(iso)
-                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","saturation")*(1-p15_country_dummy(iso));
- i15_dem_halfsat(iso,regr15)     = f15_demand_paras(regr15,"%c15_food_scenario%","halfsaturation")*p15_country_dummy(iso)
-                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","halfsaturation")*(1-p15_country_dummy(iso));
- i15_dem_nonsat(iso,regr15)      = f15_demand_paras(regr15,"%c15_food_scenario%","non_saturation")*p15_country_dummy(iso)
-                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","non_saturation")*(1-p15_country_dummy(iso));
+ i15_dem_intercept(iso,regr15)   = f15_demand_paras(regr15,"%c15_food_scenario%","intercept")*p15_country_switch(iso)
+                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","intercept")*(1-p15_country_switch(iso));
+ i15_dem_saturation(iso,regr15)  = f15_demand_paras(regr15,"%c15_food_scenario%","saturation")*p15_country_switch(iso)
+                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","saturation")*(1-p15_country_switch(iso));
+ i15_dem_halfsat(iso,regr15)     = f15_demand_paras(regr15,"%c15_food_scenario%","halfsaturation")*p15_country_switch(iso)
+                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","halfsaturation")*(1-p15_country_switch(iso));
+ i15_dem_nonsat(iso,regr15)      = f15_demand_paras(regr15,"%c15_food_scenario%","non_saturation")*p15_country_switch(iso)
+                                 + f15_demand_paras(regr15,"%c15_food_scenario_noselect%","non_saturation")*(1-p15_country_switch(iso));
 );
 
-option nlp = conopt4
-
+option nlp = conopt4;
+option threads = 1;
 
 *' @code
 *' Within the major food groups determined by the regressions
@@ -218,13 +218,20 @@ vm_dem_food.fx(i,knf)=0;
 
 *** Food demand model is calculated the first time for the current time step, using standard prices
 
+* Food prices are intitialized
+p15_prices_kcal(t,iso,kfo,"iter0") = i15_prices_initial_kcal(iso,kfo);
+
 * activating the first iteration
 p15_iteration_counter(t) = 1;
 
 * The set curr_iter15 includes only one element with the set element
-* of the current iteration, e.g. "iter2"
+* of the current iteration, here "iter1". As iter0 also exists,
+* its the second entry of the set.
 curr_iter15(iter15) = no;
-curr_iter15(iter15)$(ord(iter15)=p15_iteration_counter(t)) = yes;
+curr_iter15(iter15)$(ord(iter15)=p15_iteration_counter(t)+1) = yes;
+* Now we also define a set for the previous iteration
+  prev_iter15(iter15) = no;
+  prev_iter15(iter15)$(ord(iter15)=p15_iteration_counter(t)) = yes;
 
 p15_delta_income(t,i,curr_iter15) = 1;
 
@@ -241,7 +248,7 @@ solve m15_food_demand USING nlp MAXIMIZING v15_objective;
 * in case of problems try CONOPT3
 if(m15_food_demand.modelstat > 2,
   display "Modelstat > 2 | Retry solve with CONOPT3";
-  option nlp = conopt;
+  option nlp = conopt3;
   solve m15_food_demand USING nlp MAXIMIZING v15_objective;
   option nlp = conopt4;
 );
